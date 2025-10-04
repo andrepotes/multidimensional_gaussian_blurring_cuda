@@ -18,7 +18,7 @@ __constant__ float device_gaussian_blur_kernel[225];
     } while (0)
 #endif
 
-__global__ void gaussian_blur_kernel(const float* input, float* output, int width, int height, int kernel_dim) {
+__global__ void gaussian_blur_kernel(const float* input, float* output, int width, int height, int kernel_dim, int num_of_channels) {
     // Get the current thread's position (pixel) in the grid.
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -28,7 +28,7 @@ __global__ void gaussian_blur_kernel(const float* input, float* output, int widt
         return;
     }
 
-    float sum = 0.0f;
+    float sum_r = 0.0f, sum_g = 0.0f, sum_b = 0.0f;
     int radius = kernel_dim / 2;
 
     for (int row = 0; row < kernel_dim; row++) {
@@ -37,21 +37,28 @@ __global__ void gaussian_blur_kernel(const float* input, float* output, int widt
             int neighbor_y = y + row - radius;
 
             if (neighbor_x >= 0 && neighbor_x < width && neighbor_y >= 0 && neighbor_y < height) {
-                int neighbor_idx = neighbor_y * width + neighbor_x;
+                int image_idx_base = (neighbor_y * width + neighbor_x) * num_of_channels;
                 int kernel_idx = row * kernel_dim + col;
-                sum += input[neighbor_idx] * device_gaussian_blur_kernel[kernel_idx];
+
+                float kernel_val = device_gaussian_blur_kernel[kernel_idx];
+
+                sum_r += input[image_idx_base + 0] * kernel_val; // Red channel
+                sum_g += input[image_idx_base + 1] * kernel_val; // Green channel
+                sum_b += input[image_idx_base + 2] * kernel_val; // Blue channel
             }
         }
     }
 
-    int idx = y * width + x;
-    output[idx] = sum;
+    int output_idx_base = (y * width + x) * num_of_channels;
+    output[output_idx_base + 0] = sum_r; // Red
+    output[output_idx_base + 1] = sum_g; // Green
+    output[output_idx_base + 2] = sum_b; // Blue
 }
 
-void apply_gaussian_blur_cuda(const ImageData& host_img_input, ImageData& host_img_output, const float* host_gaussian_blur_kernel, int kernel_dim) {
+void apply_gaussian_blur_cuda(const ImageData& host_img_input, ImageData& host_img_output, const float* host_gaussian_blur_kernel, int kernel_dim, int num_of_channels) {
     std::cout << "Applying Gaussian blur on CUDA" << std::endl;
 
-    size_t data_size = (size_t)host_img_input.width * host_img_input.height * sizeof(float);
+    size_t data_size = (size_t) (host_img_input.width * host_img_input.height * num_of_channels *sizeof(float));
 
     float *device_img_input, *device_img_output;
     CUDA_CHECK(cudaMalloc((void**)&device_img_input, data_size));
@@ -68,7 +75,7 @@ void apply_gaussian_blur_cuda(const ImageData& host_img_input, ImageData& host_i
                     (host_img_input.height + threads_per_block.y - 1) / threads_per_block.y);
 
     // execute the CUDA kernel in input host data
-    gaussian_blur_kernel<<<num_blocks, threads_per_block>>>(device_img_input, device_img_output, host_img_input.width, host_img_input.height, kernel_dim);
+    gaussian_blur_kernel<<<num_blocks, threads_per_block>>>(device_img_input, device_img_output, host_img_input.width, host_img_input.height, kernel_dim, num_of_channels);
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaDeviceSynchronize());
 

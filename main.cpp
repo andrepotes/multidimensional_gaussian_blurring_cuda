@@ -3,7 +3,7 @@
 #include "blur_interface.h"
 
 void loadImageData(ImageData &image_data) {
-    cv::Mat host_image = cv::imread(IMAGE_FILE_PATH, cv::IMREAD_GRAYSCALE);
+    cv::Mat host_image = cv::imread(IMAGE_FILE_PATH, cv::IMREAD_COLOR);
 
     if (host_image.empty()) {
         std::cerr << "Error: Could not load image" << std::endl;
@@ -23,7 +23,7 @@ void loadImageData(ImageData &image_data) {
     // save dimensions
     image_data.width = float_host_image.cols;
     image_data.height = float_host_image.rows;
-    size_t total_elements = float_host_image.total();
+    size_t total_elements = float_host_image.total() * NUM_OF_CHANNELS;
 
     // allocate memory for the data and assign to struct with unique pointer
     image_data.data = std::make_unique<float[]>(total_elements);
@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
     // Prepare the output host struct
     host_output_img_data.width = host_input_img_data.width;
     host_output_img_data.height = host_input_img_data.height;
-    size_t total_elements = (size_t)host_output_img_data.width * host_output_img_data.height;
+    size_t total_elements = (size_t)host_output_img_data.width * host_output_img_data.height * NUM_OF_CHANNELS;
     
     host_output_img_data.data = std::make_unique<float[]>(total_elements);
 
@@ -87,7 +87,8 @@ int main(int argc, char *argv[]) {
         host_input_img_data, 
         host_output_img_data, 
         host_gaussian_blur_kernel.data(),
-        kernel_dim); 
+        kernel_dim,
+        NUM_OF_CHANNELS); 
 
     storeImageData(host_output_img_data);
 

@@ -3,7 +3,7 @@
 #define IMAGE_FILE_PATH "/home/andrepotes/projects/learning_concurrent_programming/gaussian_blurring_cuda/test_image_1920_1080.jpg"
 #define OUTPUT_IMAGE_FILE_PATH "/home/andrepotes/projects/learning_concurrent_programming/gaussian_blurring_cuda/blurred_image.jpg"
 
-#define NUM_OF_CHANNELS 1
+#define NUM_OF_CHANNELS 3
 
 #include <iostream>
 #include <cstdlib>
