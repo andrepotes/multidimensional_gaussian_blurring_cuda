@@ -53,22 +53,43 @@ void storeImageData(ImageData &image_data) {
 }
 
 int main(int argc, char *argv[]) {
-    ImageData host_input_image_data;
-    ImageData host_output_image_data;
+    ImageData host_input_img_data;
+    ImageData host_output_img_data;
 
-    loadImageData(host_input_image_data);
+    const std::vector<float> host_gaussian_blur_kernel = {
+        1.f/256,  4.f/256,  6.f/256,  4.f/256, 1.f/256,
+        4.f/256, 16.f/256, 24.f/256, 16.f/256, 4.f/256,
+        6.f/256, 24.f/256, 36.f/256, 24.f/256, 6.f/256,
+        4.f/256, 16.f/256, 24.f/256, 16.f/256, 4.f/256,
+        1.f/256,  4.f/256,  6.f/256,  4.f/256, 1.f/256
+    };
+
+    size_t kernel_size = host_gaussian_blur_kernel.size();
+    int kernel_dim = static_cast<int>(std::sqrt(kernel_size));
+
+    // Basic check to make sure it's a valid square kernel
+    if (kernel_dim * kernel_dim != kernel_size) {
+        std::cerr << "Error: Kernel size is not a perfect square!" << std::endl;
+        return 1;
+    }
+
+    loadImageData(host_input_img_data);
 
     // Prepare the output host struct
-    host_output_image_data.width = host_input_image_data.width;
-    host_output_image_data.height = host_input_image_data.height;
-    size_t total_elements = (size_t)host_output_image_data.width * host_output_image_data.height;
+    host_output_img_data.width = host_input_img_data.width;
+    host_output_img_data.height = host_input_img_data.height;
+    size_t total_elements = (size_t)host_output_img_data.width * host_output_img_data.height;
     
-    host_output_image_data.data = std::make_unique<float[]>(total_elements);
+    host_output_img_data.data = std::make_unique<float[]>(total_elements);
 
     // Call the wrapper function to run the CUDA part
-    apply_gaussian_blur_cuda(host_input_image_data, host_output_image_data);
+    apply_gaussian_blur_cuda(
+        host_input_img_data, 
+        host_output_img_data, 
+        host_gaussian_blur_kernel.data(),
+        kernel_dim); 
 
-    storeImageData(host_output_image_data);
+    storeImageData(host_output_img_data);
 
     return 0;
 }
