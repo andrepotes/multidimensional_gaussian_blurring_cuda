@@ -1,0 +1,47 @@
+# Build directories
+/build/
+/CMakeFiles/
+
+# CMake and build files
+/CMakeCache.txt
+/cmake_install.cmake
+/Makefile
+/build.ninja
+/compile_commands.json
+/rules.ninja
+/TargetDirectories.txt
+
+# Object files and libraries
+*.o
+*.obj
+*.a
+*.la
+*.lo
+*.lib
+*.so
+*.so.*
+*.dylib
+*.dll
+
+# Executables and apps
+*.exe
+*.out
+*.app
+
+# Generated images
+/blurred_image.jpg
+/build/blurred_image.jpg
+
+# Large local test media (avoid pushing big files)
+/test_image_1920_1080.jpg
+/test_video_1920_1080_30fps.mp4
+
+# IDE/editor metadata
+.vscode/
+.idea/
+*.code-workspace
+
+# OS/editor temporary files
+.DS_Store
+*.swp
+*.swo
