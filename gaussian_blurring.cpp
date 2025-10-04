@@ -1,7 +1,7 @@
 #include "gaussian_blurring.h"
 
 void loadImageData(ImageData &image_data) {
-    cv::Mat host_image = cv::imread(getImageFilePath(), cv::IMREAD_GRAYSCALE);
+    cv::Mat host_image = cv::imread(IMAGE_FILE_PATH, cv::IMREAD_GRAYSCALE);
 
     if (host_image.empty()) {
         std::cerr << "Error: Could not load image" << std::endl;
@@ -42,7 +42,7 @@ void storeImageData(ImageData &image_data) {
     cv::imshow("Image", display_image);
     cv::waitKey(0);
 
-    cv::imwrite(getOutputImageFilePath(), display_image);
+    cv::imwrite(OUTPUT_IMAGE_FILE_PATH, display_image);
     std::cout << "Image stored successfully" << std::endl;
 }
 
